@@ -8,6 +8,30 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
+  async checkUserExistsByUsername(username: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { username: username },
+    });
+
+    if (!user) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async checkUserExistsByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: email },
+    });
+
+    if (!user) {
+      return false;
+    }
+
+    return true;
+  }
+
   async getAllUsers() {
     const users = await this.prisma.user.findMany();
     return users;
@@ -25,7 +49,22 @@ export class UsersService {
     return user;
   }
 
+  async getUserById(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: id },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return user;
+  }
+
   async createUser(createUserDto: CreateUserDto) {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    createUserDto.password = hashedPassword;
+
     const user = await this.prisma.user.create({
       data: createUserDto,
     });
