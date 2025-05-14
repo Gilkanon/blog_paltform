@@ -1,7 +1,9 @@
-import { Controller, Delete, Get, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiOkResponse } from '@nestjs/swagger';
-import UserEntity from './entities/user.entity';
+import UpdateUserDto from './dto/update-user.dto';
+import { plainToInstance } from 'class-transformer';
+import UserDto from './dto/user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -10,54 +12,57 @@ export class UsersController {
   @Get('/all')
   @ApiOkResponse({
     description: 'Get all users',
-    type: UserEntity,
+    type: UserDto,
     isArray: true,
   })
   async getAllUsers() {
     const users = await this.usersService.getAllUsers();
 
-    return users.map((user) => new UserEntity(user));
+    return users.map((user) => plainToInstance(UserDto, user));
   }
 
   @Get('/username/:username')
   @ApiOkResponse({
     description: 'Get user by username',
-    type: UserEntity,
+    type: UserDto,
   })
-  async getUserByUsername(username: string) {
+  async getUserByUsername(@Param('username') username: string) {
     const user = await this.usersService.getUserByUsername(username);
 
-    return new UserEntity(user);
+    return plainToInstance(UserDto, user);
   }
 
   @Get('/email/:email')
   @ApiOkResponse({
     description: 'Get user by email',
-    type: UserEntity,
+    type: UserDto,
   })
-  async getUserByEmail(email: string) {
+  async getUserByEmail(@Param('email') email: string) {
     const user = await this.usersService.getUserByEmail(email);
 
-    return new UserEntity(user);
+    return plainToInstance(UserDto, user);
   }
 
   @Patch('/username/:username')
   @ApiOkResponse({
     description: 'Update user by username',
-    type: UserEntity,
+    type: UserDto,
   })
-  async updateUser(username: string, updateUserDto: any) {
+  async updateUser(
+    @Param('username') username: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
     const user = await this.usersService.updateUser(username, updateUserDto);
 
-    return new UserEntity(user);
+    return plainToInstance(UserDto, user);
   }
 
   @Delete('/username/:username')
   @ApiOkResponse({
     description: 'Delete user by username',
-    type: UserEntity,
+    type: UserDto,
   })
-  async deleteUser(username: string) {
+  async deleteUser(@Param('username') username: string) {
     await this.usersService.deleteUser(username);
 
     return 'user deleted successfully';
