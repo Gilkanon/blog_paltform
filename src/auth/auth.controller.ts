@@ -4,11 +4,13 @@ import SignInDto from './dto/sign-in.dto';
 import SignUpDto from './dto/sign-up.dto';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import TokenDto from './dto/token.dto';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller('/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('/login')
   @ApiCreatedResponse({
     description: 'Sign in',
@@ -18,6 +20,7 @@ export class AuthController {
     return this.authService.signIn(signInDto);
   }
 
+  @Public()
   @Post('/register')
   @ApiCreatedResponse({ description: 'Sign up', type: TokenDto })
   async signUp(@Body() signUpDto: SignUpDto) {

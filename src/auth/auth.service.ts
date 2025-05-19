@@ -11,6 +11,7 @@ import SignUpDto from './dto/sign-up.dto';
 import SignInDto from './dto/sign-in.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { randomBytes } from 'crypto';
+import JwtPayload from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -61,7 +62,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { username: user.username, role: user.role };
+    const payload: JwtPayload = { username: user.username, role: user.role };
 
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: '15m',
@@ -97,7 +98,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const payload = { username: user.username, role: user.role };
+    const payload: JwtPayload = { username: user.username, role: user.role };
 
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: process.env.JWT_ACCESS_EXPIRATION || '15m',
