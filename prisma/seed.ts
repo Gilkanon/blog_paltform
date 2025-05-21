@@ -39,7 +39,27 @@ async function main() {
     },
   });
 
-  console.log({ userAlex, userJohn, userJane });
+  const alexPost = await prisma.post.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      title: 'First Post',
+      content: 'This is the content of the first post.',
+      authorId: userAlex.id,
+    },
+  });
+
+  const johnPost = await prisma.post.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      title: 'Second Post',
+      content: 'This is the content of the second post.',
+      authorId: userJohn.id,
+    },
+  });
+
+  console.log({ userAlex, userJohn, userJane, alexPost, johnPost });
 }
 
 main()
