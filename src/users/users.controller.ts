@@ -6,25 +6,20 @@ import {
   Param,
   Patch,
   Post,
-  Req,
-  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import UpdateUserDto from './dto/update-user.dto';
 import { plainToInstance } from 'class-transformer';
 import UserDto from './dto/user.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guards';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('/all')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.USER)
   @ApiBearerAuth()
   @ApiOkResponse({
@@ -39,7 +34,6 @@ export class UsersController {
   }
 
   @Get('/username/:username')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.USER)
   @ApiBearerAuth()
   @ApiOkResponse({
@@ -53,7 +47,6 @@ export class UsersController {
   }
 
   @Post('/email')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MODERATOR)
   @ApiBearerAuth()
   @ApiOkResponse({
@@ -67,7 +60,6 @@ export class UsersController {
   }
 
   @Patch('/username/:username')
-  @UseGuards(JwtAuthGuard)
   @Roles(Role.MODERATOR)
   @ApiBearerAuth()
   @ApiOkResponse({
@@ -84,7 +76,6 @@ export class UsersController {
   }
 
   @Delete('/username/:username')
-  @UseGuards(JwtAuthGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth()
   @ApiOkResponse({
