@@ -23,55 +23,55 @@ import {
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import UpdatePostDto from './dto/update-post.dto';
+import CreatePostDto from './dto/create-post.dto';
 
 @Controller('posts')
 export class PostsController {
   constructor(private postsService: PostsService) {}
-
+  @Get()
   @Public()
   @ApiOkResponse({
     description: 'Get all posts',
     type: PostDto,
     isArray: true,
   })
-  @Get()
   async getAllPosts() {
     const posts = await this.postsService.getAllPosts();
 
     return posts.map((post) => plainToInstance(PostDto, post));
   }
 
+  @Get(':id')
   @Public()
   @ApiOkResponse({
     description: 'Get post by id',
     type: PostDto,
   })
-  @Get(':id')
   async getPostById(@Param('id', ParseIntPipe) id: number) {
     const post = await this.postsService.getPostById(id);
 
     return plainToInstance(PostDto, post);
   }
 
+  @Get('user/:username')
   @Public()
   @ApiOkResponse({
     description: 'Get posts by username',
     type: PostDto,
     isArray: true,
   })
-  @Get('user/:username')
   async getPostsByUsername(@Param('username') username: string) {
     const posts = await this.postsService.getPostsByUsername(username);
 
     return posts.map((post) => plainToInstance(PostDto, post));
   }
 
+  @Get('user/:username/:postId')
   @Public()
   @ApiOkResponse({
     description: 'Get current post by username and postId',
     type: PostDto,
   })
-  @Get('user/:username/:postId')
   async getCurrentPostByUsername(
     @Param('username') username: string,
     @Param('postId', ParseIntPipe) postId: number,
@@ -84,7 +84,7 @@ export class PostsController {
     return plainToInstance(PostDto, post);
   }
 
-  @Post()
+  @Post('create')
   @ApiBearerAuth()
   @Roles(Role.USER)
   @ApiCreatedResponse({
@@ -92,7 +92,7 @@ export class PostsController {
     type: PostDto,
   })
   async createPost(
-    @Body() createPostDto: PostDto,
+    @Body() createPostDto: CreatePostDto,
     @GetUser('username') username: string,
   ) {
     const post = await this.postsService.createPost(createPostDto, username);

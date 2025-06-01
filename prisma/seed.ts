@@ -59,7 +59,31 @@ async function main() {
     },
   });
 
-  console.log({ userAlex, userJohn, userJane, alexPost, johnPost });
+  const commentForAlexPost = await prisma.comment.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      content: 'Great post, Alex!',
+      postId: alexPost.id,
+      authorId: userJane.id,
+    },
+  });
+
+  const commentForJohnPost = await prisma.comment.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      content: 'Thanks for sharing, John!',
+      postId: johnPost.id,
+      authorId: userAlex.id,
+    },
+  });
+
+  console.log({
+    users: [userAlex, userJohn, userJane],
+    posts: [alexPost, johnPost],
+    comments: [commentForAlexPost, commentForJohnPost],
+  });
 }
 
 main()
