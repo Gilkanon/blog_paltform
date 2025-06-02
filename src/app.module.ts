@@ -10,9 +10,17 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guards';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [UsersModule, PrismaModule, AuthModule, PostsModule, CommentsModule],
+  imports: [
+    UsersModule,
+    PrismaModule,
+    AuthModule,
+    PostsModule,
+    CommentsModule,
+    ScheduleModule.forRoot(),
+  ],
   controllers: [AppController],
   providers: [
     AppService,
