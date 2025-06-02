@@ -7,14 +7,12 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Req,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { Public } from 'src/common/decorators/public.decorator';
 import { plainToInstance } from 'class-transformer';
 import CommentDto from './dto/comment.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Request } from 'express';
 import { Role } from '@prisma/client';
 import {
   ApiBearerAuth,
@@ -22,6 +20,7 @@ import {
   ApiOkResponse,
 } from '@nestjs/swagger';
 import CommentContentDto from './dto/comment-content.dto';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
 
 @Controller('comments')
 export class CommentsController {
@@ -73,10 +72,9 @@ export class CommentsController {
   async createComment(
     @Param('postId', ParseIntPipe) postId: number,
     @Body() contentDto: CommentContentDto,
-    @Req() req: Request,
+    @GetUser('username') username: string,
   ) {
     const { content } = contentDto;
-    const { username } = req.user as { username: string };
     const comment = await this.commentsService.createComment(
       content,
       postId,
@@ -97,10 +95,9 @@ export class CommentsController {
     @Param('postId', ParseIntPipe) postId: number,
     @Param('parentId', ParseIntPipe) parentId: number,
     @Body() contentDto: CommentContentDto,
-    @Req() req: Request,
+    @GetUser('username') username: string,
   ) {
     const { content } = contentDto;
-    const { username } = req.user as { username: string };
     const reply = await this.commentsService.createComment(
       content,
       postId,
