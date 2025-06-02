@@ -100,4 +100,54 @@ export class CommentsService {
 
     return 'comment deleted successfully';
   }
+
+  async voteComment(commentId: number, username: string, voteValue: 1 | -1) {
+    const user = await this.usersService.getUserByUsername(username);
+    const userId = user.id;
+
+    const existingVote = await this.prisma.vote.findFirst({
+      where: {
+        commentId,
+        userId,
+      },
+    });
+
+    if (existingVote) {
+      if (existingVote.value === voteValue) {
+        await this.prisma.vote.delete({ where: { id: existingVote.id } });
+      } else {
+        await this.prisma.vote.update({
+          where: { id: existingVote.id },
+          data: { value: voteValue },
+        });
+      }
+    } else {
+      await this.prisma.vote.create({
+        data: {
+          commentId,
+          userId,
+          value: voteValue,
+        },
+      });
+    }
+
+    const votes = await this.prisma.vote.findMany({
+      where: { commentId },
+    });
+    const rating = votes.reduce((acc, vote) => acc + vote.value, 0);
+
+    this.prisma.comment.update({
+      where: { id: commentId },
+      data: { rating },
+    });
+
+    return {
+      rating: rating,
+      message: existingVote
+        ? existingVote.value === voteValue
+          ? 'Vote removed'
+          : 'Vote updated'
+        : 'Vote added',
+    };
+  }
 }

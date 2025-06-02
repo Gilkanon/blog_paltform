@@ -21,6 +21,8 @@ import {
 } from '@nestjs/swagger';
 import CommentContentDto from './dto/comment-content.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { VoteValueDto } from './dto/vote-value.dto';
+import { VoteDto } from './dto/vote.dto';
 
 @Controller('comments')
 export class CommentsController {
@@ -132,5 +134,26 @@ export class CommentsController {
   })
   async deleteComment(@Param('id', ParseIntPipe) id: number) {
     return this.commentsService.deleteComment(id);
+  }
+
+  @Post('vote/comment/:commentId')
+  @ApiBearerAuth()
+  @Roles(Role.USER)
+  @ApiOkResponse({
+    description: 'Votes on a comment',
+    type: CommentDto,
+  })
+  async voteComment(
+    @Param('commentId', ParseIntPipe) commentId: number,
+    @GetUser('username') username: string,
+    @Body() voteValueDto: VoteValueDto,
+  ) {
+    const { voteValue } = voteValueDto;
+    const comment = await this.commentsService.voteComment(
+      commentId,
+      username,
+      voteValue,
+    );
+    return plainToInstance(VoteDto, comment);
   }
 }

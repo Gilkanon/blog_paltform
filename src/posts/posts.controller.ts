@@ -24,6 +24,8 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import UpdatePostDto from './dto/update-post.dto';
 import CreatePostDto from './dto/create-post.dto';
+import { VoteDto } from './dto/vote.dto';
+import { VoteValueDto } from './dto/vote-value.dto';
 
 @Controller('posts')
 export class PostsController {
@@ -133,5 +135,26 @@ export class PostsController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     return this.postsService.deletePost(username, id);
+  }
+
+  @Post('vote/post/:postId')
+  @ApiBearerAuth()
+  @Roles(Role.USER)
+  @ApiOkResponse({
+    description: 'Vote for a post',
+    type: PostDto,
+  })
+  async votePost(
+    @Param('postId', ParseIntPipe) postId: number,
+    @Body() voteValueDto: VoteValueDto,
+    @GetUser('username') username: string,
+  ) {
+    const { voteValue } = voteValueDto;
+    const vote = await this.postsService.voteOnPost(
+      postId,
+      username,
+      voteValue,
+    );
+    return plainToInstance(VoteDto, vote);
   }
 }

@@ -113,4 +113,49 @@ export class PostsService {
 
     return `Post ${post.title} deleted`;
   }
+
+  async voteOnPost(postId: number, username: string, voteValue: 1 | -1) {
+    const user = await this.usersService.getUserByUsername(username);
+    const userId = user.id;
+
+    const existingVote = await this.prisma.vote.findFirst({
+      where: { postId, userId },
+    });
+
+    if (existingVote) {
+      if (existingVote.value === voteValue) {
+        await this.prisma.vote.delete({ where: { id: existingVote.id } });
+      } else {
+        await this.prisma.vote.update({
+          where: { id: existingVote.id },
+          data: { value: voteValue },
+        });
+      }
+    } else {
+      await this.prisma.vote.create({
+        data: {
+          postId,
+          userId,
+          value: voteValue,
+        },
+      });
+    }
+
+    const votes = await this.prisma.vote.findMany({ where: { postId } });
+    const rating = votes.reduce((acc, vote) => acc + vote.value, 0);
+
+    await this.prisma.post.update({
+      where: { id: postId },
+      data: { rating },
+    });
+
+    return {
+      rating: rating,
+      message: existingVote
+        ? existingVote.value === voteValue
+          ? 'Vote removed'
+          : 'Vote updated'
+        : 'Vote added',
+    };
+  }
 }
