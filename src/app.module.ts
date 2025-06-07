@@ -11,6 +11,8 @@ import { JwtAuthGuard } from './auth/jwt-auth.guards';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SubscriptionsService } from './subscriptions/subscriptions.service';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     PostsModule,
     CommentsModule,
     ScheduleModule.forRoot(),
+    SubscriptionsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -27,6 +30,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     PrismaService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    SubscriptionsService,
   ],
 })
 export class AppModule {}

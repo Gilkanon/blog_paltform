@@ -19,6 +19,11 @@ enum Role {
   MODERATOR
 }
 
+enum TargetType {
+  POST
+  USER
+}
+
 model User {
   id String @id @default(cuid())
   username String @unique
@@ -29,6 +34,7 @@ model User {
   posts Post[]
   comments Comment[]
   votes Vote[]
+  subscriptions Subscription[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -89,4 +95,16 @@ model Vote {
   
   @@unique([userId, postId], name: "unique_vote_per_user_per_post")
   @@unique([userId, commentId], name: "unique_vote_per_user_per_comment")
+}
+
+model Subscription {
+  id Int @id @default(autoincrement())
+  targetType TargetType
+  postId Int?
+  userTargetId String?
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  
+  @@unique([targetType, postId, userTargetId, userId], name: "unique_subscription_per_user_per_target")
 }
