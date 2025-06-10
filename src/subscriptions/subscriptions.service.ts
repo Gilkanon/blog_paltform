@@ -6,6 +6,8 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { UsersService } from 'src/users/users.service';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { getPaginationParams } from 'src/common/utils/pagination.util';
 
 @Injectable()
 export class SubscriptionsService {
@@ -50,42 +52,84 @@ export class SubscriptionsService {
     });
   }
 
-  async getUserSubscriptionsByUsername(username: string) {
+  async getUserSubscriptionsByUsername(
+    username: string,
+    paginationDto: PaginationDto,
+  ) {
     const user = await this.usersService.getUserByUsername(username);
+    const { page, limit } = paginationDto;
+    const { skip, take } = getPaginationParams(page, limit);
 
-    const subscriptions = await this.prisma.subscription.findMany({
-      where: { targetType: 'USER', userId: user.id },
-    });
+    const [data, total] = await Promise.all([
+      this.prisma.subscription.findMany({
+        where: { targetType: 'USER', userId: user.id },
+        skip,
+        take,
+      }),
+      this.prisma.subscription.count({
+        where: { targetType: 'USER', userId: user.id },
+      }),
+    ]);
 
-    return subscriptions;
+    return { data, total };
   }
 
-  async getPostSubscriptionsByUsername(username: string) {
+  async getPostSubscriptionsByUsername(
+    username: string,
+    paginationDto: PaginationDto,
+  ) {
     const user = await this.usersService.getUserByUsername(username);
 
-    const subscriptions = await this.prisma.subscription.findMany({
-      where: { targetType: 'POST', userId: user.id },
-    });
+    const { page, limit } = paginationDto;
+    const { skip, take } = getPaginationParams(page, limit);
 
-    return subscriptions;
+    const [data, total] = await Promise.all([
+      this.prisma.subscription.findMany({
+        where: { targetType: 'POST', userId: user.id },
+        skip,
+        take,
+      }),
+      this.prisma.subscription.count({
+        where: { targetType: 'POST', userId: user.id },
+      }),
+    ]);
+
+    return { data, total };
   }
 
-  async getUserSubscribers(username: string) {
+  async getUserSubscribers(username: string, paginationDto: PaginationDto) {
     const user = await this.usersService.getUserByUsername(username);
+    const { page, limit } = paginationDto;
+    const { skip, take } = getPaginationParams(page, limit);
+    const [data, total] = await Promise.all([
+      this.prisma.subscription.findMany({
+        where: { targetType: 'USER', userTargetId: user.id },
+        skip,
+        take,
+      }),
+      this.prisma.subscription.count({
+        where: { targetType: 'USER', userTargetId: user.id },
+      }),
+    ]);
 
-    const subscriptions = await this.prisma.subscription.findMany({
-      where: { targetType: 'USER', userTargetId: user.id },
-    });
-
-    return subscriptions;
+    return { data, total };
   }
 
-  async getPostsSubscribers(postId: number) {
-    const subscriptions = await this.prisma.subscription.findMany({
-      where: { targetType: 'POST', postId: postId },
-    });
+  async getPostsSubscribers(postId: number, paginationDto: PaginationDto) {
+    const { page, limit } = paginationDto;
+    const { skip, take } = getPaginationParams(page, limit);
+    const [data, total] = await Promise.all([
+      this.prisma.subscription.findMany({
+        where: { targetType: 'POST', postId: postId },
+        skip,
+        take,
+      }),
+      this.prisma.subscription.count({
+        where: { targetType: 'POST', postId: postId },
+      }),
+    ]);
 
-    return subscriptions;
+    return { data, total };
   }
 
   async deleteSubscription(username: string, id: number) {

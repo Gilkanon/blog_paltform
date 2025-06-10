@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { Public } from 'src/common/decorators/public.decorator';
@@ -18,11 +19,14 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import CommentContentDto from './dto/comment-content.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { VoteValueDto } from './dto/vote-value.dto';
 import { VoteDto } from './dto/vote.dto';
+import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('comments')
 export class CommentsController {
@@ -30,26 +34,52 @@ export class CommentsController {
 
   @Public()
   @Get('/post/:postId')
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOkResponse({
     description: 'Returns all comments for a specific post',
-    type: [CommentDto],
+    type: PaginatedResponseDto,
   })
-  async getAllPostComments(@Param('postId', ParseIntPipe) postId: number) {
-    const comments = await this.commentsService.getAllPostComments(postId);
+  async getAllPostComments(
+    @Param('postId', ParseIntPipe) postId: number,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    const { data, total } = await this.commentsService.getAllPostComments(
+      postId,
+      paginationDto,
+    );
 
-    return comments.map((comment) => plainToInstance(CommentDto, comment));
+    return new PaginatedResponseDto<CommentDto>({
+      data: data.map((comment) => plainToInstance(CommentDto, comment)),
+      total,
+      page: paginationDto.page,
+      limit: paginationDto.limit,
+    });
   }
 
   @Public()
   @Get('/user/:username')
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOkResponse({
     description: 'Returns all comments made by a specific user',
-    type: [CommentDto],
+    type: PaginatedResponseDto,
   })
-  async getAllUserComments(@Param('username') username: string) {
-    const comments = await this.commentsService.getAllUserComments(username);
+  async getAllUserComments(
+    @Param('username') username: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    const { data, total } = await this.commentsService.getAllUserComments(
+      username,
+      paginationDto,
+    );
 
-    return comments.map((comment) => plainToInstance(CommentDto, comment));
+    return new PaginatedResponseDto<CommentDto>({
+      data: data.map((comment) => plainToInstance(CommentDto, comment)),
+      total,
+      page: paginationDto.page,
+      limit: paginationDto.limit,
+    });
   }
 
   @Public()

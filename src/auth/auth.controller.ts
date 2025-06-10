@@ -27,6 +27,7 @@ export class AuthController {
     return this.authService.signUp(signUpDto);
   }
 
+  @Public()
   @Post('/refresh')
   @ApiCreatedResponse({ description: 'Refresh token' })
   async refreshToken(@Body('refreshToken') refreshToken: string) {

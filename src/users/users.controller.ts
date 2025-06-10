@@ -6,14 +6,17 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiQuery } from '@nestjs/swagger';
 import UpdateUserDto from './dto/update-user.dto';
 import { plainToInstance } from 'class-transformer';
 import UserDto from './dto/user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
 
 @Controller('users')
 export class UsersController {
@@ -21,16 +24,22 @@ export class UsersController {
 
   @Get('/all')
   @Roles(Role.USER)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiBearerAuth()
   @ApiOkResponse({
     description: 'Get all users',
-    type: UserDto,
-    isArray: true,
+    type: PaginatedResponseDto,
   })
-  async getAllUsers() {
-    const users = await this.usersService.getAllUsers();
+  async getAllUsers(@Query() paginationDto: PaginationDto) {
+    const { data, total } = await this.usersService.getAllUsers(paginationDto);
 
-    return users.map((user) => plainToInstance(UserDto, user));
+    return new PaginatedResponseDto<UserDto>({
+      data: data.map((user) => plainToInstance(UserDto, user)),
+      total,
+      page: paginationDto.page,
+      limit: paginationDto.limit,
+    });
   }
 
   @Get('/username/:username')

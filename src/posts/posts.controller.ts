@@ -7,8 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Req,
-  UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { plainToInstance } from 'class-transformer';
@@ -19,6 +18,7 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
@@ -26,21 +26,29 @@ import UpdatePostDto from './dto/update-post.dto';
 import CreatePostDto from './dto/create-post.dto';
 import { VoteDto } from './dto/vote.dto';
 import { VoteValueDto } from './dto/vote-value.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
 
 @Controller('posts')
 export class PostsController {
   constructor(private postsService: PostsService) {}
   @Get()
   @Public()
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOkResponse({
-    description: 'Get all posts',
-    type: PostDto,
-    isArray: true,
+    description: 'Get all posts with pagination',
+    type: PaginatedResponseDto,
   })
-  async getAllPosts() {
-    const posts = await this.postsService.getAllPosts();
+  async getAllPosts(@Query() paginationDto: PaginationDto) {
+    const { data, total } = await this.postsService.getAllPosts(paginationDto);
 
-    return posts.map((post) => plainToInstance(PostDto, post));
+    return new PaginatedResponseDto<PostDto>({
+      data: data.map((post) => plainToInstance(PostDto, post)),
+      total,
+      page: paginationDto.page,
+      limit: paginationDto.limit,
+    });
   }
 
   @Get(':id')
@@ -57,15 +65,27 @@ export class PostsController {
 
   @Get('user/:username')
   @Public()
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOkResponse({
     description: 'Get posts by username',
-    type: PostDto,
-    isArray: true,
+    type: PaginatedResponseDto,
   })
-  async getPostsByUsername(@Param('username') username: string) {
-    const posts = await this.postsService.getPostsByUsername(username);
+  async getPostsByUsername(
+    @Param('username') username: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    const { data, total } = await this.postsService.getPostsByUsername(
+      username,
+      paginationDto,
+    );
 
-    return posts.map((post) => plainToInstance(PostDto, post));
+    return new PaginatedResponseDto<PostDto>({
+      data: data.map((post) => plainToInstance(PostDto, post)),
+      total,
+      page: paginationDto.page,
+      limit: paginationDto.limit,
+    });
   }
 
   @Get('user/:username/:postId')

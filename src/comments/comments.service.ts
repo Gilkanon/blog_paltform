@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { getPaginationParams } from 'src/common/utils/pagination.util';
 import { PostsService } from 'src/posts/posts.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
@@ -11,32 +13,43 @@ export class CommentsService {
     private postsService: PostsService,
   ) {}
 
-  async getAllPostComments(postId: number) {
-    const posts = await this.prisma.comment.findMany({
-      where: { postId: postId },
-    });
-    if (!posts) {
+  async getAllPostComments(postId: number, paginationDto: PaginationDto) {
+    const { page, limit } = paginationDto;
+    const { skip, take } = getPaginationParams(page, limit);
+    const [data, total] = await Promise.all([
+      this.prisma.comment.findMany({ where: { postId: postId }, skip, take }),
+      this.prisma.comment.count({ where: { postId: postId } }),
+    ]);
+
+    if (!data) {
       throw new Error(`Comments not found for post`);
     }
 
-    return posts;
+    return { data, total };
   }
 
-  async getAllUserComments(username: string) {
+  async getAllUserComments(username: string, paginationDto: PaginationDto) {
     const user = await this.usersService.getUserByUsername(username);
     if (!user) {
       throw new Error(`User not found`);
     }
 
-    const comments = await this.prisma.comment.findMany({
-      where: { authorId: user.id },
-    });
+    const { page, limit } = paginationDto;
+    const { skip, take } = getPaginationParams(page, limit);
+    const [data, total] = await Promise.all([
+      this.prisma.comment.findMany({
+        where: { authorId: user.id },
+        skip,
+        take,
+      }),
+      this.prisma.comment.count({ where: { authorId: user.id } }),
+    ]);
 
-    if (!comments) {
+    if (!data) {
       throw new Error(`Comments not found for user`);
     }
 
-    return comments;
+    return { data, total };
   }
 
   async getCommentById(id: number) {

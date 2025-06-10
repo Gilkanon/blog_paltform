@@ -3,6 +3,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
 import CreatePostDto from './dto/create-post.dto';
 import UpdatePostDto from './dto/update-post.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { getPaginationParams } from 'src/common/utils/pagination.util';
 
 @Injectable()
 export class PostsService {
@@ -11,8 +13,14 @@ export class PostsService {
     private usersService: UsersService,
   ) {}
 
-  async getAllPosts() {
-    return this.prisma.post.findMany();
+  async getAllPosts(paginationDto: PaginationDto) {
+    const { page, limit } = paginationDto;
+    const { skip, take } = getPaginationParams(page, limit);
+    const [data, total] = await Promise.all([
+      this.prisma.post.findMany({ skip, take }),
+      this.prisma.post.count(),
+    ]);
+    return { data, total };
   }
 
   async getPostById(id: number) {
@@ -25,24 +33,28 @@ export class PostsService {
     return post;
   }
 
-  async getPostsByUsername(username: string) {
+  async getPostsByUsername(username: string, paginationDto: PaginationDto) {
     const user = await this.usersService.getUserByUsername(username);
+    const { page, limit } = paginationDto;
+    const { skip, take } = getPaginationParams(page, limit);
+    const [data, total] = await Promise.all([
+      this.prisma.post.findMany({ where: { authorId: user.id }, skip, take }),
+      this.prisma.post.count({ where: { authorId: user.id } }),
+    ]);
 
-    const posts = await this.prisma.post.findMany({
-      where: { authorId: user.id },
-    });
-
-    if (!posts) {
+    if (!data) {
       throw new NotFoundException(`Posts not found`);
     }
 
-    return posts;
+    return { data, total };
   }
 
   async getCurrentPostByUsername(username: string, postId: number) {
-    const posts = await this.getPostsByUsername(username);
+    const user = await this.usersService.getUserByUsername(username);
+    const post = await this.prisma.post.findFirst({
+      where: { authorId: user.id, id: postId },
+    });
 
-    const post = posts.find((post) => post.id === postId);
     if (!post) {
       throw new NotFoundException(`Post not found`);
     }

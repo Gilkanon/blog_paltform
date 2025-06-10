@@ -3,6 +3,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import CreateUserDto from './dto/create-user.dto';
 import UpdateUserDto from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { getPaginationParams } from 'src/common/utils/pagination.util';
 
 @Injectable()
 export class UsersService {
@@ -32,9 +34,15 @@ export class UsersService {
     return true;
   }
 
-  async getAllUsers() {
-    const users = await this.prisma.user.findMany();
-    return users;
+  async getAllUsers(paginationDto: PaginationDto) {
+    const { page, limit } = paginationDto;
+    const { skip, take } = getPaginationParams(page, limit);
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({ skip, take }),
+      this.prisma.user.count(),
+    ]);
+
+    return { data, total };
   }
 
   async getUserByUsername(username: string) {
