@@ -45,7 +45,7 @@ export class AuthService {
       password,
     });
 
-    return this.signIn(user);
+    return this.signIn({ username, password });
   }
 
   async signIn(signInDto: SignInDto) {
