@@ -23,8 +23,8 @@ import {
 } from '@nestjs/swagger';
 import CommentContentDto from './dto/comment-content.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { VoteValueDto } from './dto/vote-value.dto';
-import { VoteDto } from './dto/vote.dto';
+import { VoteValueDto } from '../common/dto/vote-value.dto';
+import { VoteDto } from '../common/dto/vote.dto';
 import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 

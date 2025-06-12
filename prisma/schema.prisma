@@ -54,7 +54,7 @@ model RefreshToken {
 model Post {
   id Int @id @default(autoincrement())
   title String
-  content String
+  content String @db.MediumText
   authorId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -67,7 +67,7 @@ model Post {
 
 model Comment {
   id Int @id @default(autoincrement())
-  content String
+  content String @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   postId Int

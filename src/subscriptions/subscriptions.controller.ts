@@ -37,7 +37,7 @@ export class SubscriptionsController {
   })
   async createSubscription(
     @Body() createSubscriptionDto: CreateSubscriptionDto,
-    @GetUser() username: string,
+    @GetUser('username') username: string,
   ) {
     const subscription = await this.subscriptionsService.createSubscription(
       createSubscriptionDto,
@@ -118,7 +118,7 @@ export class SubscriptionsController {
     @Param('postId', ParseIntPipe) postId: number,
     @Query() paginationDto: PaginationDto,
   ) {
-    const { data, total } = await this.getPostSubscribers(
+    const { data, total } = await this.subscriptionsService.getPostSubscribers(
       postId,
       paginationDto,
     );

@@ -24,8 +24,8 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import UpdatePostDto from './dto/update-post.dto';
 import CreatePostDto from './dto/create-post.dto';
-import { VoteDto } from './dto/vote.dto';
-import { VoteValueDto } from './dto/vote-value.dto';
+import { VoteDto } from '../common/dto/vote.dto';
+import { VoteValueDto } from '../common/dto/vote-value.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
 

@@ -62,7 +62,8 @@ export class UsersController {
     description: 'Get user by email',
     type: UserDto,
   })
-  async getUserByEmail(@Body() email: string) {
+  async getUserByEmail(@Body() data) {
+    const { email } = data;
     const user = await this.usersService.getUserByEmail(email);
 
     return plainToInstance(UserDto, user);

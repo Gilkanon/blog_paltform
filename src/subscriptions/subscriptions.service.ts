@@ -31,6 +31,12 @@ export class SubscriptionsService {
       if (!post) {
         throw new NotFoundException(`Post with ID ${postId} not found`);
       }
+      const isSubbed = await this.prisma.subscription.findFirst({
+        where: { userId: user.id, postId: postId },
+      });
+      if (isSubbed) {
+        throw new BadRequestException('Cannot subscribe to same post twice');
+      }
     } else if (targetType === 'USER') {
       const user = await this.prisma.user.findUnique({
         where: { id: userTargetId },
@@ -115,7 +121,7 @@ export class SubscriptionsService {
     return { data, total };
   }
 
-  async getPostsSubscribers(postId: number, paginationDto: PaginationDto) {
+  async getPostSubscribers(postId: number, paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     const { skip, take } = getPaginationParams(page, limit);
     const [data, total] = await Promise.all([
