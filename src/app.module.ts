@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -24,9 +22,8 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     ScheduleModule.forRoot(),
     SubscriptionsModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [
-    AppService,
     PrismaService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
