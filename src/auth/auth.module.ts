@@ -5,11 +5,12 @@ import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
 import { TokenCleanupService } from './token-cleanup.service';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
-  providers: [AuthService, JwtStrategy, TokenCleanupService],
+  providers: [AuthService, JwtStrategy, TokenCleanupService, GoogleStrategy],
   controllers: [AuthController],
   imports: [
     PrismaModule,

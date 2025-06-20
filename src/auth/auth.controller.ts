@@ -1,10 +1,12 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import SignInDto from './dto/sign-in.dto';
 import SignUpDto from './dto/sign-up.dto';
 import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import TokenDto from './dto/token.dto';
 import { Public } from 'src/common/decorators/public.decorator';
+import { AuthGuard } from '@nestjs/passport';
+import { GoogleOAuthGuard } from './guards/google.guard';
 
 @Controller('/auth')
 export class AuthController {
@@ -38,5 +40,17 @@ export class AuthController {
   @ApiOkResponse({ description: 'Logout' })
   async logout(@Body('refreshToken') refreshToken: string) {
     return this.authService.logout(refreshToken);
+  }
+
+  @Public()
+  @Get('/google')
+  @UseGuards(GoogleOAuthGuard)
+  async googleAuth(@Req() req) {}
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(GoogleOAuthGuard)
+  async googleAuthRedirect(@Req() req) {
+    return req.user;
   }
 }

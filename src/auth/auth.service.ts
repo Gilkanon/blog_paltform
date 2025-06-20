@@ -12,6 +12,8 @@ import SignInDto from './dto/sign-in.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { randomBytes } from 'crypto';
 import JwtPayload from './interfaces/jwt-payload.interface';
+import { GoogleProfile } from './interfaces/google-profile.interface';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +21,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private readonly configService: ConfigService,
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
@@ -65,7 +68,8 @@ export class AuthService {
     const payload: JwtPayload = { username: user.username, role: user.role };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: '15m',
+      expiresIn:
+        this.configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m',
     });
     const refreshToken = randomBytes(64).toString('hex');
 
@@ -74,6 +78,44 @@ export class AuthService {
         userId: user.id,
         token: refreshToken,
         expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+        role: user.role,
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async validateOAuthUser(profile: GoogleProfile) {
+    const { email, name } = profile;
+
+    let user = await this.usersService.getUserByEmail(email);
+
+    if (!user) {
+      user = await this.usersService.createUser({
+        username: name || email.split('@')[0],
+        email,
+        password: randomBytes(16).toString('hex'),
+      });
+      console.log('Created new user:', user);
+    }
+
+    const payload: JwtPayload = { username: user.username, role: user.role };
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn:
+        this.configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m',
+    });
+
+    const refreshToken = randomBytes(64).toString('hex');
+
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        token: refreshToken,
+        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
         role: user.role,
       },
     });
@@ -101,7 +143,8 @@ export class AuthService {
     const payload: JwtPayload = { username: user.username, role: user.role };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: process.env.JWT_ACCESS_EXPIRATION || '15m',
+      expiresIn:
+        this.configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m',
     });
 
     const newRefreshToken = randomBytes(64).toString('hex');

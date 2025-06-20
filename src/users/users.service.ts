@@ -85,9 +85,9 @@ export class UsersService {
       where: { email: email },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    // if (!user) {
+    //   throw new NotFoundException('User not found');
+    // }
 
     return user;
   }
