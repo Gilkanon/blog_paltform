@@ -99,7 +99,6 @@ export class AuthService {
         email,
         password: randomBytes(16).toString('hex'),
       });
-      console.log('Created new user:', user);
     }
 
     const payload: JwtPayload = { username: user.username, role: user.role };
